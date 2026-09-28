@@ -19,8 +19,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -68,19 +66,8 @@ fun ApexTimeApp() {
 
     Scaffold(
         containerColor = SurfaceDark,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "APEXTIME",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.5.sp,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfaceDark)
-            )
-        },
+        // O cabeçalho (APEXTIME / PIT WALL) agora faz parte do conteúdo rolável
+        // de ApexTimeHomeScreen, então o TopAppBar do Material foi removido.
         bottomBar = {
             NavigationBar(
                 containerColor = SurfaceContainer,
@@ -109,14 +96,18 @@ fun ApexTimeApp() {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(SurfaceDark),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.TopCenter
         ) {
-            Text(
-                text = "Tela: ${items[selectedIndex].title}",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            when (selectedIndex) {
+                0 -> ApexTimeHomeScreen()
+                else -> Text(
+                    text = "Tela: ${items[selectedIndex].title}",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 80.dp)
+                )
+            }
         }
     }
 }
