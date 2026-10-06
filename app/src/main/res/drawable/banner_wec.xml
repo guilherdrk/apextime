@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="60dp"
+    android:viewportWidth="400"
+    android:viewportHeight="120">
+
+    <!-- Fundo Gradiente WEC Endurance Red/Dark -->
+    <path android:pathData="M0,0h400v120h-400z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="400"
+                android:endY="120"
+                android:type="linear">
+                <item android:color="#FF1A0C16" android:offset="0.0"/>
+                <item android:color="#FF2B1423" android:offset="0.5"/>
+                <item android:color="#FF0D060B" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Linhas de Velocidade Le Mans Hypercar -->
+    <path
+        android:pathData="M-30,120 L220,-10 L245,-10 L-5,120 Z"
+        android:fillColor="#22FF4B5C" />
+    <path
+        android:pathData="M40,130 L290,-10 L310,-10 L60,130 Z"
+        android:fillColor="#1A38BDF8" />
+
+    <!-- Silhueta Ferrari 499P / Porsche 963 Hypercar -->
+    <path
+        android:pathData="M190,78 L220,78 L240,58 L285,55 L320,68 L365,70 L385,78 L190,78 Z"
+        android:fillColor="#33FF4B5C" />
+    <path
+        android:pathData="M200,72 L380,72"
+        android:strokeColor="#FFFF4B5C"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M295,65 L330,48 L355,48"
+        android:strokeColor="#FF4BE277"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+</vector>

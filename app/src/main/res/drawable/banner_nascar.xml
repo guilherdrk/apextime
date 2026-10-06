@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="60dp"
+    android:viewportWidth="400"
+    android:viewportHeight="120">
+
+    <!-- Fundo Gradiente NASCAR Daytona Gold/Dark -->
+    <path android:pathData="M0,0h400v120h-400z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="400"
+                android:endY="120"
+                android:type="linear">
+                <item android:color="#FF1C150A" android:offset="0.0"/>
+                <item android:color="#FF2E2111" android:offset="0.5"/>
+                <item android:color="#FF0F0A05" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Linhas de Velocidade Superspeedway Banking -->
+    <path
+        android:pathData="M-40,110 L250,-10 L275,-10 L-15,110 Z"
+        android:fillColor="#22F59E0B" />
+    <path
+        android:pathData="M30,130 L310,-10 L330,-10 L50,130 Z"
+        android:fillColor="#1A4BE277" />
+
+    <!-- Silhueta Next-Gen NASCAR Cup Stock Car -->
+    <path
+        android:pathData="M180,78 L210,78 L235,58 L280,56 L315,66 L360,68 L380,78 L180,78 Z"
+        android:fillColor="#33F59E0B" />
+    <path
+        android:pathData="M190,72 L375,72"
+        android:strokeColor="#FFF59E0B"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M290,65 L320,50 L345,50"
+        android:strokeColor="#FF38BDF8"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+</vector>

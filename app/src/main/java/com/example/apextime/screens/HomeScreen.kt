@@ -40,9 +40,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.apextime.data.HomeUiState
 import com.example.apextime.data.HomeViewModel
+import com.example.apextime.data.IndyCarData
 import com.example.apextime.data.NascarUiState
 import com.example.apextime.data.NascarViewModel
 import com.example.apextime.data.SessaoUi
+import com.example.apextime.data.WecData
 import java.time.LocalTime
 
 /* ---------- Cores extras (as demais vêm do MainActivity.kt: SurfaceDark, SurfaceContainer, NeonGreen, TextMuted) ---------- */
@@ -145,6 +147,8 @@ fun ApexTimeHomeScreen(
                 Spacer(Modifier.height(10.dp))
                 TrackRecordCard(uiState)
             }
+            "IndyCar" -> IndyCarRaceCard()
+            "WEC" -> WecRaceCard()
             "NASCAR" -> {
                 when {
                     nascarUiState.carregando -> CarregandoCard()
@@ -439,6 +443,250 @@ private fun NascarRaceCard(uiState: NascarUiState) {
 
         Spacer(Modifier.height(12.dp))
         Text(uiState.dataHoraFormatada, color = TextMuted, fontSize = 12.sp)
+    }
+}
+
+@Composable
+private fun IndyCarRaceCard() {
+    val stage = IndyCarData.schedule2026[2]
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(SurfaceContainer)
+            .padding(18.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(NeonGreen)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text("NTT INDYCAR SERIES • ${stage.roundCode}", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(PillBg)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(stage.isStreetOrOval, color = AccentBlue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Text(stage.name, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+            Icon(Icons.Filled.LocationOn, contentDescription = null, tint = TextMuted, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(stage.location, color = TextMuted, fontSize = 12.sp)
+        }
+
+        Spacer(Modifier.height(14.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(PillBg)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text("DURAÇÃO / FORMATO", color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text("85 Voltas (167.28 Milhas)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text("CLIMA PREVISTO", color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.WbSunny, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("22°C Ensolarado", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.AccessTime, contentDescription = null, tint = TextMuted, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("CONTAGEM REGRESSIVA", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            CountdownUnit("05", "DIAS", Modifier.weight(1f))
+            CountdownUnit("12", "HORAS", Modifier.weight(1f))
+            CountdownUnit("45", "MIN", Modifier.weight(1f))
+            CountdownUnit("20", "SEG", Modifier.weight(1f))
+        }
+
+        Spacer(Modifier.height(14.dp))
+        Text("Domingo às 16:30 (Brasília)", color = TextMuted, fontSize = 12.sp)
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            BroadcastChip("DISNEY+")
+            BroadcastChip("TV CULTURA")
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Button(
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(44.dp)
+            ) {
+                Icon(Icons.Filled.Notifications, contentDescription = null, tint = SurfaceDark, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Definir Lembrete", color = SurfaceDark, fontWeight = FontWeight.Bold)
+            }
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(PillBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Outlined.StarBorder, contentDescription = "Favoritar", tint = Color.White, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun WecRaceCard() {
+    val stage = WecData.schedule2026[2]
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(SurfaceContainer)
+            .padding(18.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(NeonGreen)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text("FIA WEC • HYPERCAR & LMGT3 • ${stage.roundCode}", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(PillBg)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text("6 HOURS OF SPA", color = AccentBlue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Text(stage.name, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+            Icon(Icons.Filled.LocationOn, contentDescription = null, tint = TextMuted, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(stage.location, color = TextMuted, fontSize = 12.sp)
+        }
+
+        Spacer(Modifier.height(14.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(PillBg)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text("DURAÇÃO / CORRIDA", color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(stage.duration, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text("CLIMA PREVISTO", color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.WbSunny, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("18°C Nublado", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.AccessTime, contentDescription = null, tint = TextMuted, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("CONTAGEM REGRESSIVA", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            CountdownUnit("14", "DIAS", Modifier.weight(1f))
+            CountdownUnit("08", "HORAS", Modifier.weight(1f))
+            CountdownUnit("15", "MIN", Modifier.weight(1f))
+            CountdownUnit("00", "SEG", Modifier.weight(1f))
+        }
+
+        Spacer(Modifier.height(14.dp))
+        Text("Sábado às 08:00 (Brasília)", color = TextMuted, fontSize = 12.sp)
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            BroadcastChip("BANDSPORTS")
+            BroadcastChip("YOUTUBE WEC")
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Button(
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(44.dp)
+            ) {
+                Icon(Icons.Filled.Notifications, contentDescription = null, tint = SurfaceDark, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Definir Lembrete", color = SurfaceDark, fontWeight = FontWeight.Bold)
+            }
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(PillBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Outlined.StarBorder, contentDescription = "Favoritar", tint = Color.White, modifier = Modifier.size(18.dp))
+            }
+        }
     }
 }
 

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="60dp"
+    android:viewportWidth="400"
+    android:viewportHeight="120">
+
+    <!-- Fundo Gradiente IndyCar Dark Blue -->
+    <path android:pathData="M0,0h400v120h-400z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="400"
+                android:endY="120"
+                android:type="linear">
+                <item android:color="#FF0B1528" android:offset="0.0"/>
+                <item android:color="#FF16263F" android:offset="0.5"/>
+                <item android:color="#FF080E1C" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Linhas de Velocidade Oval / Street Circuit -->
+    <path
+        android:pathData="M-20,130 Q150,20 380,20 L410,20 Q180,20 -10,130 Z"
+        android:fillColor="#2238BDF8" />
+    <path
+        android:pathData="M10,140 L280,-10 L300,-10 L30,140 Z"
+        android:fillColor="#1A4BE277" />
+
+    <!-- Silhueta Dallara IndyCar -->
+    <path
+        android:pathData="M200,80 L230,80 L250,62 L300,60 L330,70 L370,72 L390,80 L200,80 Z"
+        android:fillColor="#3338BDF8" />
+    <path
+        android:pathData="M210,75 L385,75"
+        android:strokeColor="#FF38BDF8"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M310,70 L340,52 L365,52"
+        android:strokeColor="#FF4BE277"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+</vector>

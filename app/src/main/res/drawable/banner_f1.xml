@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="60dp"
+    android:viewportWidth="400"
+    android:viewportHeight="120">
+
+    <!-- Fundo Gradiente Carbono Dark -->
+    <path android:pathData="M0,0h400v120h-400z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="400"
+                android:endY="120"
+                android:type="linear">
+                <item android:color="#FF0F1722" android:offset="0.0"/>
+                <item android:color="#FF1A2332" android:offset="0.5"/>
+                <item android:color="#FF0B1018" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Linhas de Velocidade / Grid Aerodinâmico -->
+    <path
+        android:pathData="M-50,140 L180,-20 L210,-20 L-20,140 Z"
+        android:fillColor="#1A4BE277" />
+    <path
+        android:pathData="M30,140 L260,-20 L280,-20 L50,140 Z"
+        android:fillColor="#1238BDF8" />
+    <path
+        android:pathData="M120,140 L350,-20 L370,-20 L140,140 Z"
+        android:fillColor="#0DFFFFFF" />
+
+    <!-- Silhueta de Carro de F1 / Asa Traseira & Cockpit -->
+    <path
+        android:pathData="M220,75 L235,75 L245,60 L290,58 L320,68 L360,70 L380,75 L385,82 L210,82 Z"
+        android:fillColor="#334BE277" />
+    <path
+        android:pathData="M220,70 L380,70"
+        android:strokeColor="#FF4BE277"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M320,68 L350,55 L370,55"
+        android:strokeColor="#FF38BDF8"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round" />
+
+    <!-- Texto Decorativo de Fundo "F1" -->
+    <path
+        android:pathData="M310,25 L345,25 L340,40 L320,40 L315,55 L300,55 Z"
+        android:fillColor="#15FFFFFF" />
+</vector>

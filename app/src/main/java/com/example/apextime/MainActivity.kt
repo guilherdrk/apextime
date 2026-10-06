@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apextime.ui.theme.ApexTimeTheme
 
+import com.example.apextime.screens.CategoriesScreen
+
 // Cores base extraídas do protótipo
 val SurfaceDark = Color(0xFF0F141C)
 val SurfaceContainer = Color(0xFF1B2028)
@@ -100,6 +102,7 @@ fun ApexTimeApp() {
         ) {
             when (selectedIndex) {
                 0 -> ApexTimeHomeScreen()
+                1 -> CategoriesScreen(onBackClick = { selectedIndex = 0 })
                 else -> Text(
                     text = "Tela: ${items[selectedIndex].title}",
                     color = Color.White,
