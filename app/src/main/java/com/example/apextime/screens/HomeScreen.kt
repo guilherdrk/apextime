@@ -1,5 +1,11 @@
 package com.example.apextime
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -34,17 +40,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.widget.Toast
+import com.example.apextime.data.CorridaFavorita
+import com.example.apextime.data.FavoritosViewModel
 import com.example.apextime.data.HomeUiState
 import com.example.apextime.data.HomeViewModel
 import com.example.apextime.data.IndyCarData
+import com.example.apextime.data.agendarLembrete
 import com.example.apextime.data.NascarUiState
 import com.example.apextime.data.NascarViewModel
 import com.example.apextime.data.SessaoUi
 import com.example.apextime.data.WecData
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalTime
 
 /* ---------- Cores extras (as demais vêm do MainActivity.kt: SurfaceDark, SurfaceContainer, NeonGreen, TextMuted) ---------- */
@@ -52,6 +66,12 @@ val PillBg = Color(0xFF12161D)
 val AccentBlue = Color(0xFF4D8DFF)
 
 private val categorias = listOf("F1", "IndyCar", "WEC", "NASCAR")
+
+/* Um requestCode fixo por categoria, pra cada lembrete poder ser reagendado
+   (o PendingIntent é identificado por esse código, então repetir o mesmo
+   número substitui o lembrete anterior da mesma categoria em vez de duplicar). */
+private const val REQUEST_CODE_F1 = 1001
+private const val REQUEST_CODE_NASCAR = 1002
 
 /** Bom dia (05h–11h59), Boa tarde (12h–17h59) ou Boa noite (18h–04h59), pelo horário do aparelho. */
 private fun saudacaoPorHorario(): String {
@@ -61,6 +81,19 @@ private fun saudacaoPorHorario(): String {
         in 12..17 -> "Boa tarde"
         else -> "Boa noite"
     }
+}
+
+/**
+ * Reconstrói o instante (data/hora) da corrida a partir da contagem regressiva já calculada
+ * pelo ViewModel (dias/horas/minutos/segundos restantes a partir de agora). Evita ter que
+ * expor o Instant "cru" da corrida lá no ViewModel só pra isso.
+ */
+private fun instanteAlvo(dias: Int, horas: Int, minutos: Int, segundos: Int): Instant {
+    return Instant.now()
+        .plus(Duration.ofDays(dias.toLong()))
+        .plus(Duration.ofHours(horas.toLong()))
+        .plus(Duration.ofMinutes(minutos.toLong()))
+        .plus(Duration.ofSeconds(segundos.toLong()))
 }
 
 @Composable
@@ -255,8 +288,81 @@ private fun ErroCard(mensagem: String, onTentarNovamente: () -> Unit) {
     }
 }
 
+/**
+ * Pequeno botão de estrela compartilhado por todos os cards de corrida.
+ * Preenchido e verde quando já está nos favoritos, contornado e branco caso contrário.
+ */
 @Composable
-private fun RaceCard(uiState: HomeUiState) {
+private fun FavoritoButton(isFavorito: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(PillBg)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = if (isFavorito) Icons.Filled.Star else Icons.Outlined.StarBorder,
+            contentDescription = if (isFavorito) "Remover dos favoritos" else "Favoritar",
+            tint = if (isFavorito) NeonGreen else Color.White,
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+/**
+ * Botão de "Definir Lembrete" compartilhado. Agenda uma notificação local (via AlarmManager)
+ * pra alertar antes da largada, usando um Instant já calculado pelo chamador.
+ */
+@Composable
+private fun DefinirLembreteButton(
+    context: Context,
+    requestCode: Int,
+    nomeCorrida: String,
+    instanteCorrida: Instant,
+    modifier: Modifier = Modifier
+) {
+    // No Android 13+ (Tiramisu) é preciso pedir essa permissão em tempo de execução;
+    // sem ela, o alarme até dispara, mas a notificação não aparece pra ninguém (falha silenciosa).
+    val launcherPermissaoNotificacao = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = {}
+    )
+
+    Button(
+        onClick = {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                launcherPermissaoNotificacao.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+
+            val conseguiu = agendarLembrete(context, requestCode, nomeCorrida, instanteCorrida)
+            val mensagem = if (conseguiu) {
+                "Lembrete marcado! Você recebe um aviso um pouco antes da largada"
+            } else {
+                "Essa corrida está muito perto, não dá pra agendar um lembrete com antecedência"
+            }
+            Toast.makeText(context, mensagem, Toast.LENGTH_LONG).show()
+        },
+        colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
+        shape = RoundedCornerShape(14.dp),
+        modifier = modifier
+    ) {
+        Icon(Icons.Filled.AccessTime, contentDescription = null, tint = SurfaceDark, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text("Definir Lembrete", color = SurfaceDark, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun RaceCard(uiState: HomeUiState, favoritosViewModel: FavoritosViewModel = viewModel()) {
+    val favoritos by favoritosViewModel.favoritos.collectAsState()
+    val isFavorito = favoritos.any { it.id == "F1" }
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -353,31 +459,37 @@ private fun RaceCard(uiState: HomeUiState) {
 
         Spacer(Modifier.height(18.dp))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(
-                onClick = { /* TODO: definir lembrete */ },
-                colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
-                shape = RoundedCornerShape(14.dp),
+            DefinirLembreteButton(
+                context = context,
+                requestCode = REQUEST_CODE_F1,
+                nomeCorrida = uiState.nomeCorrida,
+                instanteCorrida = instanteAlvo(uiState.dias, uiState.horas, uiState.minutos, uiState.segundos),
                 modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Filled.AccessTime, contentDescription = null, tint = SurfaceDark, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Definir Lembrete", color = SurfaceDark, fontWeight = FontWeight.Bold)
-            }
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(PillBg),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Outlined.StarBorder, contentDescription = "Favoritar", tint = Color.White, modifier = Modifier.size(18.dp))
-            }
+            )
+            FavoritoButton(
+                isFavorito = isFavorito,
+                onClick = {
+                    favoritosViewModel.alternarFavorito(
+                        CorridaFavorita(
+                            id = "F1",
+                            categoria = "F1",
+                            nome = uiState.nomeCorrida,
+                            circuito = "${uiState.circuito} • ${uiState.localCircuito}",
+                            dataHoraFormatada = uiState.dataHoraFormatada
+                        )
+                    )
+                }
+            )
         }
     }
 }
 
 @Composable
-private fun NascarRaceCard(uiState: NascarUiState) {
+private fun NascarRaceCard(uiState: NascarUiState, favoritosViewModel: FavoritosViewModel = viewModel()) {
+    val favoritos by favoritosViewModel.favoritos.collectAsState()
+    val isFavorito = favoritos.any { it.id == "NASCAR" }
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -443,12 +555,44 @@ private fun NascarRaceCard(uiState: NascarUiState) {
 
         Spacer(Modifier.height(12.dp))
         Text(uiState.dataHoraFormatada, color = TextMuted, fontSize = 12.sp)
+
+        // Sem chips de transmissão aqui: diferente da F1 (BAND/F1 TV PRO são fixos e
+        // válidos pra temporada toda), não achei uma fonte confiável de quem transmite
+        // NASCAR no Brasil pra cravar isso sem arriscar informação errada.
+        Spacer(Modifier.height(18.dp))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            DefinirLembreteButton(
+                context = context,
+                requestCode = REQUEST_CODE_NASCAR,
+                nomeCorrida = uiState.nomeCorrida,
+                instanteCorrida = instanteAlvo(uiState.dias, uiState.horas, uiState.minutos, uiState.segundos),
+                modifier = Modifier.weight(1f)
+            )
+            FavoritoButton(
+                isFavorito = isFavorito,
+                onClick = {
+                    favoritosViewModel.alternarFavorito(
+                        CorridaFavorita(
+                            id = "NASCAR",
+                            categoria = "NASCAR",
+                            nome = uiState.nomeCorrida,
+                            circuito = uiState.circuito,
+                            dataHoraFormatada = uiState.dataHoraFormatada
+                        )
+                    )
+                }
+            )
+        }
     }
 }
 
 @Composable
-private fun IndyCarRaceCard() {
+private fun IndyCarRaceCard(favoritosViewModel: FavoritosViewModel = viewModel()) {
     val stage = IndyCarData.schedule2026[2]
+    val favoritos by favoritosViewModel.favoritos.collectAsState()
+    val isFavorito = favoritos.any { it.id == "IndyCar" }
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -544,7 +688,16 @@ private fun IndyCarRaceCard() {
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(
-                onClick = {},
+                // Essa contagem é um dado estático (ainda não vem de uma API com data real,
+                // diferente da F1 e da NASCAR), então não dá pra agendar um lembrete preciso
+                // em cima dela sem arriscar notificar na hora errada.
+                onClick = {
+                    Toast.makeText(
+                        context,
+                        "Lembrete ainda não disponível pra IndyCar: essa corrida não tem uma data real vinda de API",
+                        Toast.LENGTH_LONG
+                    ).show()
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
@@ -555,22 +708,31 @@ private fun IndyCarRaceCard() {
                 Spacer(Modifier.width(6.dp))
                 Text("Definir Lembrete", color = SurfaceDark, fontWeight = FontWeight.Bold)
             }
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(PillBg),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Outlined.StarBorder, contentDescription = "Favoritar", tint = Color.White, modifier = Modifier.size(18.dp))
-            }
+            FavoritoButton(
+                isFavorito = isFavorito,
+                onClick = {
+                    favoritosViewModel.alternarFavorito(
+                        CorridaFavorita(
+                            id = "IndyCar",
+                            categoria = "IndyCar",
+                            nome = stage.name,
+                            circuito = stage.location,
+                            dataHoraFormatada = "Domingo às 16:30 (Brasília)"
+                        )
+                    )
+                }
+            )
         }
     }
 }
 
 @Composable
-private fun WecRaceCard() {
+private fun WecRaceCard(favoritosViewModel: FavoritosViewModel = viewModel()) {
     val stage = WecData.schedule2026[2]
+    val favoritos by favoritosViewModel.favoritos.collectAsState()
+    val isFavorito = favoritos.any { it.id == "WEC" }
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -666,7 +828,15 @@ private fun WecRaceCard() {
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(
-                onClick = {},
+                // Mesmo caso do IndyCar: a contagem aqui é fixa (sem API de data real por trás),
+                // então o lembrete fica indisponível pra não notificar na hora errada.
+                onClick = {
+                    Toast.makeText(
+                        context,
+                        "Lembrete ainda não disponível pra WEC: essa corrida não tem uma data real vinda de API",
+                        Toast.LENGTH_LONG
+                    ).show()
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
@@ -677,15 +847,20 @@ private fun WecRaceCard() {
                 Spacer(Modifier.width(6.dp))
                 Text("Definir Lembrete", color = SurfaceDark, fontWeight = FontWeight.Bold)
             }
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(PillBg),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Outlined.StarBorder, contentDescription = "Favoritar", tint = Color.White, modifier = Modifier.size(18.dp))
-            }
+            FavoritoButton(
+                isFavorito = isFavorito,
+                onClick = {
+                    favoritosViewModel.alternarFavorito(
+                        CorridaFavorita(
+                            id = "WEC",
+                            categoria = "WEC",
+                            nome = stage.name,
+                            circuito = stage.location,
+                            dataHoraFormatada = "Sábado às 08:00 (Brasília)"
+                        )
+                    )
+                }
+            )
         }
     }
 }
