@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
@@ -33,7 +32,10 @@ import com.example.apextime.data.CorridaFavorita
 import com.example.apextime.data.FavoritosViewModel
 
 @Composable
-fun FavoritosScreen(favoritosViewModel: FavoritosViewModel = viewModel()) {
+fun FavoritosScreen(
+    favoritosViewModel: FavoritosViewModel = viewModel(),
+    onItemClick: (CorridaFavorita) -> Unit = {}
+) {
     val favoritos by favoritosViewModel.favoritos.collectAsState()
 
     Column(
@@ -84,6 +86,7 @@ fun FavoritosScreen(favoritosViewModel: FavoritosViewModel = viewModel()) {
                 items(favoritos, key = { it.id }) { favorito ->
                     FavoritoCard(
                         favorito = favorito,
+                        onItemClick = { onItemClick(favorito) },
                         onRemover = { favoritosViewModel.remover(favorito.id) }
                     )
                 }
@@ -93,12 +96,17 @@ fun FavoritosScreen(favoritosViewModel: FavoritosViewModel = viewModel()) {
 }
 
 @Composable
-private fun FavoritoCard(favorito: CorridaFavorita, onRemover: () -> Unit) {
+private fun FavoritoCard(
+    favorito: CorridaFavorita,
+    onItemClick: () -> Unit,
+    onRemover: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(SurfaceContainer)
+            .clickable { onItemClick() }
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

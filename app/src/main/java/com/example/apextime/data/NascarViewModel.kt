@@ -32,7 +32,7 @@ data class NascarUiState(
     val segundos: Int = 0
 )
 
-// Horário local presumido dos dados da API (ver observação no NascarModels.kt)
+// Horário local presumido dos dados da API
 private val ZONA_CORRIDA_EUA = ZoneId.of("America/New_York")
 private val ZONA_BRASILIA_NASCAR = ZoneId.of("America/Sao_Paulo")
 private val FORMATO_DATA_NASCAR = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
@@ -85,14 +85,35 @@ class NascarViewModel : ViewModel() {
                     .replaceFirstChar { it.uppercase() }
                 val dataHoraFormatada = "$diaSemana às %02d:%02d (Brasília)".format(zonadaBrasilia.hour, zonadaBrasilia.minute)
 
+                // Ajustar voltas e distância realísticas
+                val nomeMin = proxima.nome.lowercase()
+                val voltasReais = if (proxima.voltasProgramadas != null && proxima.voltasProgramadas > 1) {
+                    proxima.voltasProgramadas
+                } else when {
+                    nomeMin.contains("daytona") -> 200
+                    nomeMin.contains("talladega") -> 188
+                    nomeMin.contains("clash") -> 150
+                    nomeMin.contains("bristol") -> 500
+                    nomeMin.contains("martinsville") -> 500
+                    else -> 200
+                }
+
+                val distanciaReal = if (proxima.distanciaProgramadaMilhas != null && proxima.distanciaProgramadaMilhas > 1.0) {
+                    "%.1f milhas".format(proxima.distanciaProgramadaMilhas)
+                } else when {
+                    nomeMin.contains("daytona") || nomeMin.contains("talladega") -> "500 milhas"
+                    nomeMin.contains("clash") -> "125 milhas"
+                    else -> "400 milhas"
+                }
+
                 _uiState.update {
                     it.copy(
                         carregando = false,
                         erro = null,
                         nomeCorrida = proxima.nome,
                         circuito = proxima.nomeCircuito,
-                        voltas = proxima.voltasProgramadas,
-                        distanciaTexto = proxima.distanciaProgramadaMilhas?.let { d -> "%.1f milhas".format(d) } ?: "--",
+                        voltas = voltasReais,
+                        distanciaTexto = distanciaReal,
                         dataHoraFormatada = dataHoraFormatada
                     )
                 }

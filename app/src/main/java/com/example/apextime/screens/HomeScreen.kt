@@ -99,7 +99,8 @@ private fun instanteAlvo(dias: Int, horas: Int, minutos: Int, segundos: Int): In
 @Composable
 fun ApexTimeHomeScreen(
     viewModel: HomeViewModel = viewModel(),
-    nascarViewModel: NascarViewModel = viewModel()
+    nascarViewModel: NascarViewModel = viewModel(),
+    onRaceCardClick: (CorridaFavorita) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val nascarUiState by nascarViewModel.uiState.collectAsState()
@@ -122,12 +123,7 @@ fun ApexTimeHomeScreen(
         HeaderRow(
             titulo = "PIT WALL",
             subtitulo = "LIVE TELEMETRY",
-            trailing = {
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = Color.White, modifier = Modifier.size(18.dp))
-                    Icon(Icons.Filled.Notifications, contentDescription = "Notificações", tint = Color.White, modifier = Modifier.size(18.dp))
-                }
-            }
+            trailing = {}
         )
 
         Spacer(Modifier.height(18.dp))
@@ -154,7 +150,7 @@ fun ApexTimeHomeScreen(
                 when {
                     uiState.carregando -> CarregandoCard()
                     uiState.erro != null -> ErroCard(mensagem = uiState.erro!!, onTentarNovamente = viewModel::tentarNovamente)
-                    else -> RaceCard(uiState)
+                    else -> RaceCard(uiState, onRaceCardClick = onRaceCardClick)
                 }
 
                 Spacer(Modifier.height(24.dp))
@@ -180,13 +176,13 @@ fun ApexTimeHomeScreen(
                 Spacer(Modifier.height(10.dp))
                 TrackRecordCard(uiState)
             }
-            "IndyCar" -> IndyCarRaceCard()
-            "WEC" -> WecRaceCard()
+            "IndyCar" -> IndyCarRaceCard(onRaceCardClick = onRaceCardClick)
+            "WEC" -> WecRaceCard(onRaceCardClick = onRaceCardClick)
             "NASCAR" -> {
                 when {
                     nascarUiState.carregando -> CarregandoCard()
                     nascarUiState.erro != null -> ErroCard(mensagem = nascarUiState.erro!!, onTentarNovamente = nascarViewModel::tentarNovamente)
-                    else -> NascarRaceCard(nascarUiState)
+                    else -> NascarRaceCard(nascarUiState, onRaceCardClick = onRaceCardClick)
                 }
             }
             else -> EmBreveCard(categoriaSelecionada)
@@ -358,16 +354,29 @@ private fun DefinirLembreteButton(
 }
 
 @Composable
-private fun RaceCard(uiState: HomeUiState, favoritosViewModel: FavoritosViewModel = viewModel()) {
+private fun RaceCard(
+    uiState: HomeUiState,
+    favoritosViewModel: FavoritosViewModel = viewModel(),
+    onRaceCardClick: (CorridaFavorita) -> Unit = {}
+) {
     val favoritos by favoritosViewModel.favoritos.collectAsState()
-    val isFavorito = favoritos.any { it.id == "F1" }
+    val isFavorito = favoritos.any { it.id.equals("f1", ignoreCase = true) }
     val context = LocalContext.current
+
+    val corrida = CorridaFavorita(
+        id = "f1",
+        categoria = "Fórmula 1",
+        nome = uiState.nomeCorrida.ifEmpty { "Las Vegas Grand Prix" },
+        circuito = "${uiState.circuito} • ${uiState.localCircuito}",
+        dataHoraFormatada = uiState.dataHoraFormatada
+    )
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(SurfaceContainer)
+            .clickable { onRaceCardClick(corrida) }
             .padding(18.dp)
     ) {
         Row(
@@ -453,7 +462,8 @@ private fun RaceCard(uiState: HomeUiState, favoritosViewModel: FavoritosViewMode
 
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            BroadcastChip("BAND")
+            BroadcastChip("GLOBO")
+            BroadcastChip("SPORTV")
             BroadcastChip("F1 TV PRO")
         }
 
@@ -471,9 +481,9 @@ private fun RaceCard(uiState: HomeUiState, favoritosViewModel: FavoritosViewMode
                 onClick = {
                     favoritosViewModel.alternarFavorito(
                         CorridaFavorita(
-                            id = "F1",
-                            categoria = "F1",
-                            nome = uiState.nomeCorrida,
+                            id = "f1",
+                            categoria = "Fórmula 1",
+                            nome = uiState.nomeCorrida.ifEmpty { "Próximo GP de F1" },
                             circuito = "${uiState.circuito} • ${uiState.localCircuito}",
                             dataHoraFormatada = uiState.dataHoraFormatada
                         )
@@ -485,16 +495,29 @@ private fun RaceCard(uiState: HomeUiState, favoritosViewModel: FavoritosViewMode
 }
 
 @Composable
-private fun NascarRaceCard(uiState: NascarUiState, favoritosViewModel: FavoritosViewModel = viewModel()) {
+private fun NascarRaceCard(
+    uiState: NascarUiState,
+    favoritosViewModel: FavoritosViewModel = viewModel(),
+    onRaceCardClick: (CorridaFavorita) -> Unit = {}
+) {
     val favoritos by favoritosViewModel.favoritos.collectAsState()
-    val isFavorito = favoritos.any { it.id == "NASCAR" }
+    val isFavorito = favoritos.any { it.id.equals("nascar", ignoreCase = true) }
     val context = LocalContext.current
+
+    val corrida = CorridaFavorita(
+        id = "nascar",
+        categoria = "NASCAR",
+        nome = uiState.nomeCorrida.ifEmpty { "NASCAR Cup Series" },
+        circuito = uiState.circuito,
+        dataHoraFormatada = uiState.dataHoraFormatada
+    )
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(SurfaceContainer)
+            .clickable { onRaceCardClick(corrida) }
             .padding(18.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -573,9 +596,9 @@ private fun NascarRaceCard(uiState: NascarUiState, favoritosViewModel: Favoritos
                 onClick = {
                     favoritosViewModel.alternarFavorito(
                         CorridaFavorita(
-                            id = "NASCAR",
+                            id = "nascar",
                             categoria = "NASCAR",
-                            nome = uiState.nomeCorrida,
+                            nome = uiState.nomeCorrida.ifEmpty { "NASCAR Cup Series" },
                             circuito = uiState.circuito,
                             dataHoraFormatada = uiState.dataHoraFormatada
                         )
@@ -587,17 +610,29 @@ private fun NascarRaceCard(uiState: NascarUiState, favoritosViewModel: Favoritos
 }
 
 @Composable
-private fun IndyCarRaceCard(favoritosViewModel: FavoritosViewModel = viewModel()) {
+private fun IndyCarRaceCard(
+    favoritosViewModel: FavoritosViewModel = viewModel(),
+    onRaceCardClick: (CorridaFavorita) -> Unit = {}
+) {
     val stage = IndyCarData.schedule2026[2]
     val favoritos by favoritosViewModel.favoritos.collectAsState()
-    val isFavorito = favoritos.any { it.id == "IndyCar" }
+    val isFavorito = favoritos.any { it.id.equals("indycar", ignoreCase = true) }
     val context = LocalContext.current
+
+    val corrida = CorridaFavorita(
+        id = "indycar",
+        categoria = "IndyCar",
+        nome = stage.name,
+        circuito = stage.location,
+        dataHoraFormatada = "Domingo às 16:30 (Brasília)"
+    )
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(SurfaceContainer)
+            .clickable { onRaceCardClick(corrida) }
             .padding(18.dp)
     ) {
         Row(
@@ -713,7 +748,7 @@ private fun IndyCarRaceCard(favoritosViewModel: FavoritosViewModel = viewModel()
                 onClick = {
                     favoritosViewModel.alternarFavorito(
                         CorridaFavorita(
-                            id = "IndyCar",
+                            id = "indycar",
                             categoria = "IndyCar",
                             nome = stage.name,
                             circuito = stage.location,
@@ -727,17 +762,29 @@ private fun IndyCarRaceCard(favoritosViewModel: FavoritosViewModel = viewModel()
 }
 
 @Composable
-private fun WecRaceCard(favoritosViewModel: FavoritosViewModel = viewModel()) {
+private fun WecRaceCard(
+    favoritosViewModel: FavoritosViewModel = viewModel(),
+    onRaceCardClick: (CorridaFavorita) -> Unit = {}
+) {
     val stage = WecData.schedule2026[2]
     val favoritos by favoritosViewModel.favoritos.collectAsState()
-    val isFavorito = favoritos.any { it.id == "WEC" }
+    val isFavorito = favoritos.any { it.id.equals("wec", ignoreCase = true) }
     val context = LocalContext.current
+
+    val corrida = CorridaFavorita(
+        id = "wec",
+        categoria = "WEC",
+        nome = stage.name,
+        circuito = stage.location,
+        dataHoraFormatada = "Sábado às 08:00 (Brasília)"
+    )
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(SurfaceContainer)
+            .clickable { onRaceCardClick(corrida) }
             .padding(18.dp)
     ) {
         Row(
@@ -852,7 +899,7 @@ private fun WecRaceCard(favoritosViewModel: FavoritosViewModel = viewModel()) {
                 onClick = {
                     favoritosViewModel.alternarFavorito(
                         CorridaFavorita(
-                            id = "WEC",
+                            id = "wec",
                             categoria = "WEC",
                             nome = stage.name,
                             circuito = stage.location,

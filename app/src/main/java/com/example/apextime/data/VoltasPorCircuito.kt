@@ -1,12 +1,7 @@
 package com.example.apextime.data
 
 /**
- * O número de voltas de cada GP é fixo por circuito (definido pelo regulamento da FIA,
- * que exige a menor quantidade de voltas que ultrapasse ~305 km, com exceção de Mônaco).
- * Não existe uma API pública que forneça isso pronto, então mantemos uma tabela estática
- * usando o mesmo "circuitId" retornado pela API Jolpica-F1/Ergast.
- *
- * Atualize aqui se a FIA mudar o traçado de algum circuito ou o calendário mudar de pista.
+ * Tabela estática de voltas por circuito na Fórmula 1.
  */
 object VoltasPorCircuito {
 
@@ -33,9 +28,22 @@ object VoltasPorCircuito {
         "rodriguez" to 71,       // México
         "interlagos" to 71,      // Brasil
         "las_vegas" to 50,       // Las Vegas
+        "vegas" to 50,           // Las Vegas (variação)
         "losail" to 57,          // Catar
         "yas_marina" to 58       // Abu Dhabi
     )
 
-    fun voltasPara(circuitId: String): Int? = voltas[circuitId]
+    fun voltasPara(circuitId: String): Int {
+        val key = circuitId.lowercase().trim()
+        return voltas[key] ?: when {
+            key.contains("vegas") -> 50
+            key.contains("marina") || key.contains("singapore") -> 62
+            key.contains("interlagos") || key.contains("sao_paulo") || key.contains("brazil") -> 71
+            key.contains("monaco") -> 78
+            key.contains("spa") -> 44
+            key.contains("monza") -> 53
+            key.contains("silverstone") -> 52
+            else -> 57
+        }
+    }
 }
