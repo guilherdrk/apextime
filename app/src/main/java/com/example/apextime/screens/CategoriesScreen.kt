@@ -31,6 +31,8 @@ import androidx.compose.material.icons.filled.SportsScore
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -45,16 +47,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.apextime.data.CategoriesViewModel
 import com.example.apextime.data.CategoryFilterTab
 import com.example.apextime.data.CategorySeries
+import com.example.apextime.data.CorridaFavorita
+import com.example.apextime.data.FavoritosViewModel
 
 // Cores do protótipo
 private val SurfaceDark = Color(0xFF0F141C)
@@ -68,6 +72,7 @@ private val AccentCyan = Color(0xFF38BDF8)
 fun CategoriesScreen(
     viewModel: CategoriesViewModel = viewModel(),
     onBackClick: () -> Unit = {},
+    onRaceCardClick: (CorridaFavorita) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -101,7 +106,7 @@ fun CategoriesScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(uiState.categories, key = { it.id }) { series ->
-                CategoryCard(series = series)
+                CategoryCard(series = series, onRaceCardClick = onRaceCardClick)
             }
             item {
                 Spacer(modifier = Modifier.height(24.dp))
@@ -301,7 +306,11 @@ private fun GridInfoBar(totalSeries: Int) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CategoryCard(series: CategorySeries) {
+private fun CategoryCard(
+    series: CategorySeries,
+    favoritosViewModel: FavoritosViewModel = viewModel(),
+    onRaceCardClick: (CorridaFavorita) -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -362,28 +371,56 @@ private fun CategoryCard(series: CategorySeries) {
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Status Badge
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            if (series.isLiveOrActive) NeonGreen.copy(alpha = 0.2f)
-                            else DarkCardInner
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = {
+                            favoritosViewModel.alternarFavorito(
+                                CorridaFavorita(
+                                    id = series.id.uppercase(),
+                                    categoria = series.name,
+                                    nome = series.nextStage.title,
+                                    circuito = series.bannerLocationTag,
+                                    dataHoraFormatada = series.nextStage.dateRange
+                                )
+                            )
+                        },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        val favoritos by favoritosViewModel.favoritos.collectAsState()
+                        val isFavorito = favoritos.any { it.id.equals(series.id, ignoreCase = true) }
+                        Icon(
+                            imageVector = if (isFavorito) Icons.Default.Star else Icons.Outlined.StarBorder,
+                            contentDescription = "Favoritar",
+                            tint = if (isFavorito) NeonGreen else Color.White,
+                            modifier = Modifier.size(18.dp)
                         )
-                        .border(
-                            width = 1.dp,
-                            color = if (series.isLiveOrActive) NeonGreen else Color.Transparent,
-                            shape = RoundedCornerShape(12.dp)
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    // Status Badge
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (series.isLiveOrActive) NeonGreen.copy(alpha = 0.2f)
+                                else DarkCardInner
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = if (series.isLiveOrActive) NeonGreen else Color.Transparent,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = if (series.isLiveOrActive) "• ${series.statusTag}" else series.statusTag,
+                            color = if (series.isLiveOrActive) NeonGreen else TextMuted,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp
                         )
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = if (series.isLiveOrActive) "• ${series.statusTag}" else series.statusTag,
-                        color = if (series.isLiveOrActive) NeonGreen else TextMuted,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.5.sp
-                    )
+                    }
                 }
             }
 
@@ -497,7 +534,17 @@ private fun CategoryCard(series: CategorySeries) {
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .background(DarkCardInner)
-                    .clickable { }
+                    .clickable {
+                        onRaceCardClick(
+                            CorridaFavorita(
+                                id = series.id,
+                                categoria = series.name,
+                                nome = series.nextStage.title,
+                                circuito = series.bannerLocationTag,
+                                dataHoraFormatada = series.nextStage.dateRange
+                            )
+                        )
+                    }
                     .padding(10.dp)
             ) {
                 Row(
