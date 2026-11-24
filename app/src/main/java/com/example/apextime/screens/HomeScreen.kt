@@ -349,7 +349,7 @@ private fun DefinirLembreteButton(
         shape = RoundedCornerShape(14.dp),
         modifier = modifier
     ) {
-        Icon(Icons.Filled.AccessTime, contentDescription = null, tint = SurfaceDark, modifier = Modifier.size(16.dp))
+        Icon(Icons.Filled.Notifications, contentDescription = null, tint = SurfaceDark, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(6.dp))
         Text("Definir Lembrete", color = SurfaceDark, fontWeight = FontWeight.Bold)
     }
