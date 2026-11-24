@@ -58,11 +58,11 @@ class CategoriesViewModel : ViewModel() {
             if (race != null) {
                 val roundCode = "R${race.round}"
                 val raceTitle = race.raceName
-                val dateStr = race.date
+                val dateFormatted = formatarDataPadrao(race.date)
 
                 CategorySeries(
                     id = "f1",
-                    name = "Fórmula 1 World Championship",
+                    name = "Fórmula 1",
                     division = "FIA OPEN-WHEEL DIVISION",
                     statusTag = "EM ANDAMENTO",
                     isLiveOrActive = true,
@@ -73,7 +73,7 @@ class CategoriesViewModel : ViewModel() {
                     nextStage = NextStageInfo(
                         roundCode = roundCode,
                         title = raceTitle,
-                        dateRange = "($dateStr)"
+                        dateRange = "($dateFormatted)"
                     )
                 )
             } else {
@@ -88,14 +88,15 @@ class CategoriesViewModel : ViewModel() {
     private suspend fun fetchNascarData(): CategorySeries {
         val nascarBannerUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/2022_Daytona_500_start.jpg/1024px-2022_Daytona_500_start.jpg"
         return try {
-            val anoAtual = 2026
+            val anoAtual = 2027
             val races = NascarRetrofitInstance.api.getCalendario(anoAtual, NascarSeries.CUP)
             val proximaCorrida = races.firstOrNull()
 
             if (proximaCorrida != null) {
                 val roundCode = "R01"
-                val raceName = proximaCorrida.nome.ifEmpty { "DAYTONA 500" }
+                val raceName = proximaCorrida.nome.ifEmpty { "Wheatley Vodka Clash" }
                 val trackName = proximaCorrida.nomeCircuito.ifEmpty { "DAYTONA INTERNATIONAL SPEEDWAY" }
+                val dateFormatted = formatarDataPadrao(proximaCorrida.dataCorrida ?: "2027-02-13T20:00:00")
 
                 CategorySeries(
                     id = "nascar",
@@ -106,11 +107,11 @@ class CategoriesViewModel : ViewModel() {
                     bannerImageUrl = nascarBannerUrl,
                     bannerDrawableRes = R.drawable.banner_nascar,
                     bannerLocationTag = trackName.uppercase(),
-                    metaTags = listOf("${races.size.ifZero(36)} ETAPAS", "PLAYOFFS FORMAT", "CLASS C OVAL"),
+                    metaTags = listOf("${races.size.ifZero(36)} ETAPAS", "TEMPORADA 2027", "CLASS C OVAL"),
                     nextStage = NextStageInfo(
                         roundCode = roundCode,
                         title = raceName,
-                        dateRange = "(${proximaCorrida.dataCorrida ?: "Abertura"})"
+                        dateRange = "($dateFormatted)"
                     )
                 )
             } else {
@@ -122,11 +123,38 @@ class CategoriesViewModel : ViewModel() {
         }
     }
 
+    private fun formatarDataPadrao(dataRaw: String?): String {
+        if (dataRaw.isNullOrBlank()) return "13 Fev 2027"
+        val limpo = dataRaw.removePrefix("(").removeSuffix(")").trim()
+
+        return try {
+            if (limpo.contains("T")) {
+                val parts = limpo.split("T")[0].split("-")
+                val ano = parts[0]
+                val mes = parts[1].toInt()
+                val dia = parts[2]
+                val nomeMes = arrayOf("Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez")[mes - 1]
+                "$dia $nomeMes $ano"
+            } else if (limpo.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) {
+                val parts = limpo.split("-")
+                val ano = parts[0]
+                val mes = parts[1].toInt()
+                val dia = parts[2]
+                val nomeMes = arrayOf("Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez")[mes - 1]
+                "$dia $nomeMes $ano"
+            } else {
+                limpo
+            }
+        } catch (e: Exception) {
+            limpo
+        }
+    }
+
     private fun Int.ifZero(default: Int) = if (this == 0) default else this
 
     private fun defaultF1Series() = CategorySeries(
         id = "f1",
-        name = "Fórmula 1 World Championship",
+        name = "Fórmula 1",
         division = "FIA OPEN-WHEEL DIVISION",
         statusTag = "EM ANDAMENTO",
         isLiveOrActive = true,
@@ -137,7 +165,7 @@ class CategoriesViewModel : ViewModel() {
         nextStage = NextStageInfo(
             roundCode = "R21",
             title = "GP de São Paulo",
-            dateRange = "(01 a 03 Nov)"
+            dateRange = "(01 a 03 Nov 2026)"
         )
     )
 
@@ -145,16 +173,16 @@ class CategoriesViewModel : ViewModel() {
         id = "nascar",
         name = "NASCAR Cup Series",
         division = "NEXT-GEN OVAL DIVISION",
-        statusTag = "DAYTONA 500",
+        statusTag = "WHEATLEY VODKA CLASH",
         isLiveOrActive = false,
         bannerImageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/2022_Daytona_500_start.jpg/1024px-2022_Daytona_500_start.jpg",
         bannerDrawableRes = R.drawable.banner_nascar,
-        bannerLocationTag = "SUPERSPEEDWAY BANKING",
-        metaTags = listOf("36 ETAPAS", "PLAYOFFS FORMAT", "CLASS C OVAL"),
+        bannerLocationTag = "DAYTONA INTERNATIONAL SPEEDWAY",
+        metaTags = listOf("36 ETAPAS", "TEMPORADA 2027", "CLASS C OVAL"),
         nextStage = NextStageInfo(
             roundCode = "R01",
-            title = "Daytona 500 (The Great American Race)",
-            dateRange = "(Abertura de Temporada)"
+            title = "Wheatley Vodka Clash",
+            dateRange = "(13 Fev 2027)"
         )
     )
 }

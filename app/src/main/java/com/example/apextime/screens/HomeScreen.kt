@@ -31,11 +31,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -597,7 +599,7 @@ private fun NascarRaceCard(
                     favoritosViewModel.alternarFavorito(
                         CorridaFavorita(
                             id = "nascar",
-                            categoria = "NASCAR",
+                            categoria = "NASCAR Cup Series",
                             nome = uiState.nomeCorrida.ifEmpty { "NASCAR Cup Series" },
                             circuito = uiState.circuito,
                             dataHoraFormatada = uiState.dataHoraFormatada
@@ -609,12 +611,45 @@ private fun NascarRaceCard(
     }
 }
 
+private data class DynamicCountdown(
+    val dias: Int,
+    val horas: Int,
+    val minutos: Int,
+    val segundos: Int
+)
+
+@Composable
+private fun rememberDynamicCountdown(targetInstant: Instant): DynamicCountdown {
+    var countdown by remember(targetInstant) { mutableStateOf(calculateDynamicCountdown(targetInstant)) }
+    LaunchedEffect(targetInstant) {
+        while (true) {
+            countdown = calculateDynamicCountdown(targetInstant)
+            delay(1000)
+        }
+    }
+    return countdown
+}
+
+private fun calculateDynamicCountdown(targetInstant: Instant): DynamicCountdown {
+    val restante = Duration.between(Instant.now(), targetInstant)
+    if (restante.isNegative) {
+        return DynamicCountdown(0, 0, 0, 0)
+    }
+    return DynamicCountdown(
+        dias = restante.toDays().toInt(),
+        horas = (restante.toHours() % 24).toInt(),
+        minutos = (restante.toMinutes() % 60).toInt(),
+        segundos = (restante.seconds % 60).toInt()
+    )
+}
+
 @Composable
 private fun IndyCarRaceCard(
     favoritosViewModel: FavoritosViewModel = viewModel(),
     onRaceCardClick: (CorridaFavorita) -> Unit = {}
 ) {
-    val stage = IndyCarData.schedule2026[2]
+    val stage = IndyCarData.getUpcomingStage()
+    val countdown = rememberDynamicCountdown(stage.targetInstant)
     val favoritos by favoritosViewModel.favoritos.collectAsState()
     val isFavorito = favoritos.any { it.id.equals("indycar", ignoreCase = true) }
     val context = LocalContext.current
@@ -703,10 +738,10 @@ private fun IndyCarRaceCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CountdownUnit("05", "DIAS", Modifier.weight(1f))
-            CountdownUnit("12", "HORAS", Modifier.weight(1f))
-            CountdownUnit("45", "MIN", Modifier.weight(1f))
-            CountdownUnit("20", "SEG", Modifier.weight(1f))
+            CountdownUnit("%02d".format(countdown.dias), "DIAS", Modifier.weight(1f))
+            CountdownUnit("%02d".format(countdown.horas), "HORAS", Modifier.weight(1f))
+            CountdownUnit("%02d".format(countdown.minutos), "MIN", Modifier.weight(1f))
+            CountdownUnit("%02d".format(countdown.segundos), "SEG", Modifier.weight(1f))
         }
 
         Spacer(Modifier.height(14.dp))
@@ -749,7 +784,7 @@ private fun IndyCarRaceCard(
                     favoritosViewModel.alternarFavorito(
                         CorridaFavorita(
                             id = "indycar",
-                            categoria = "IndyCar",
+                            categoria = "IndyCar Series",
                             nome = stage.name,
                             circuito = stage.location,
                             dataHoraFormatada = "Domingo às 16:30 (Brasília)"
@@ -766,7 +801,8 @@ private fun WecRaceCard(
     favoritosViewModel: FavoritosViewModel = viewModel(),
     onRaceCardClick: (CorridaFavorita) -> Unit = {}
 ) {
-    val stage = WecData.schedule2026[2]
+    val stage = WecData.getUpcomingStage()
+    val countdown = rememberDynamicCountdown(stage.targetInstant)
     val favoritos by favoritosViewModel.favoritos.collectAsState()
     val isFavorito = favoritos.any { it.id.equals("wec", ignoreCase = true) }
     val context = LocalContext.current
@@ -855,10 +891,10 @@ private fun WecRaceCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CountdownUnit("14", "DIAS", Modifier.weight(1f))
-            CountdownUnit("08", "HORAS", Modifier.weight(1f))
-            CountdownUnit("15", "MIN", Modifier.weight(1f))
-            CountdownUnit("00", "SEG", Modifier.weight(1f))
+            CountdownUnit("%02d".format(countdown.dias), "DIAS", Modifier.weight(1f))
+            CountdownUnit("%02d".format(countdown.horas), "HORAS", Modifier.weight(1f))
+            CountdownUnit("%02d".format(countdown.minutos), "MIN", Modifier.weight(1f))
+            CountdownUnit("%02d".format(countdown.segundos), "SEG", Modifier.weight(1f))
         }
 
         Spacer(Modifier.height(14.dp))
@@ -900,7 +936,7 @@ private fun WecRaceCard(
                     favoritosViewModel.alternarFavorito(
                         CorridaFavorita(
                             id = "wec",
-                            categoria = "WEC",
+                            categoria = "FIA WEC",
                             nome = stage.name,
                             circuito = stage.location,
                             dataHoraFormatada = "Sábado às 08:00 (Brasília)"

@@ -11,6 +11,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,11 +50,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.apextime.R
 import com.example.apextime.data.CorridaFavorita
 import com.example.apextime.data.HomeUiState
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 private val SurfaceDark = Color(0xFF0F141C)
 private val SurfaceContainer = Color(0xFF1B2028)
@@ -68,6 +76,45 @@ data class SessionScheduleItem(
     val channels: String
 )
 
+private fun formatarDataLegivel(dataRaw: String): String {
+    if (dataRaw.isBlank()) return "Data a confirmar"
+    val limpo = dataRaw.removePrefix("(").removeSuffix(")").trim()
+    return try {
+        if (limpo.contains("T")) {
+            val dt = LocalDateTime.parse(limpo, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+            val diaSemana = dt.dayOfWeek.getDisplayName(TextStyle.FULL, Locale("pt", "BR"))
+                .replaceFirstChar { it.uppercase() }
+            "$diaSemana, %02d/%02d às %02d:%02d".format(dt.dayOfMonth, dt.monthValue, dt.hour, dt.minute)
+        } else if (limpo.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) {
+            val partes = limpo.split("-")
+            "${partes[2]}/${partes[1]}/${partes[0]}"
+        } else {
+            limpo
+        }
+    } catch (e: Exception) {
+        limpo
+    }
+}
+
+private fun calcularTimestampDaCorrida(dataRaw: String): Long {
+    val limpo = dataRaw.removePrefix("(").removeSuffix(")").trim()
+    return try {
+        if (limpo.contains("T")) {
+            val dt = LocalDateTime.parse(limpo, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+            dt.atZone(ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli()
+        } else if (limpo.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) {
+            val parts = limpo.split("-")
+            val dt = LocalDateTime.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt(), 14, 0)
+            dt.atZone(ZoneId.of("America/Sao_Paulo")).toInstant().toEpochMilli()
+        } else {
+            System.currentTimeMillis() + 86400000L
+        }
+    } catch (e: Exception) {
+        System.currentTimeMillis() + 86400000L
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SessionDetailScreen(
     corrida: CorridaFavorita? = null,
@@ -118,12 +165,13 @@ fun SessionDetailScreen(
         else -> "342 KM/H"
     }
 
-    val dataHoraFormatada = corrida?.dataHoraFormatada?.ifEmpty { homeUiState.dataHoraFormatada } ?: when {
+    val rawDataFormatada = corrida?.dataHoraFormatada?.ifEmpty { homeUiState.dataHoraFormatada } ?: when {
         isWec -> "Sábado às 08:00 (Brasília)"
         isIndy -> "Domingo às 16:30 (Brasília)"
         isNascar -> "Sábado às 02:00 (Brasília)"
         else -> "Domingo às 01:00 (Brasília)"
     }
+    val dataHoraFormatada = formatarDataLegivel(rawDataFormatada)
 
     val distanciaTexto = when {
         isWec -> "6 Horas de Duração (Endurance)"
@@ -166,7 +214,7 @@ fun SessionDetailScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 80.dp)
+                .padding(bottom = 24.dp)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -214,48 +262,30 @@ fun SessionDetailScreen(
             // Badges Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(DarkCardInner)
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(categoryName.uppercase(), color = AccentCyan, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(NeonGreen.copy(alpha = 0.2f))
-                            .border(1.dp, NeonGreen, RoundedCornerShape(6.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text("• SESSÃO CONFIRMADA", color = NeonGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(DarkCardInner)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = categoryId.uppercase(),
+                        color = AccentCyan,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.Star, contentDescription = null, tint = NeonGreen, modifier = Modifier.size(16.dp))
-                    }
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.Notifications, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(NeonGreen.copy(alpha = 0.2f))
+                        .border(1.dp, NeonGreen, RoundedCornerShape(6.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text("• SESSÃO CONFIRMADA", color = NeonGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -334,7 +364,14 @@ fun SessionDetailScreen(
                         .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text("• $circuito", color = NeonGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "• $circuito",
+                        color = NeonGreen,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 
@@ -470,39 +507,42 @@ fun SessionDetailScreen(
                     }
                 }
             }
-        }
 
-        // Botão Flutuante Inferior - Adicionar à Agenda
-        Button(
-            onClick = {
-                try {
-                    val intent = Intent(Intent.ACTION_INSERT).apply {
-                        data = CalendarContract.Events.CONTENT_URI
-                        putExtra(CalendarContract.Events.TITLE, "ApexTime: $nomeCorrida")
-                        putExtra(CalendarContract.Events.EVENT_LOCATION, circuito)
-                        putExtra(CalendarContract.Events.DESCRIPTION, "Fim de semana de corrida $nomeCorrida")
-                        putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, System.currentTimeMillis() + 86400000)
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Botão Adicionar Fim de Semana à Agenda inserido no fluxo rolável do conteúdo
+            Button(
+                onClick = {
+                    try {
+                        val timestampReal = calcularTimestampDaCorrida(rawDataFormatada)
+                        val intent = Intent(Intent.ACTION_INSERT).apply {
+                            data = CalendarContract.Events.CONTENT_URI
+                            putExtra(CalendarContract.Events.TITLE, "ApexTime: $nomeCorrida")
+                            putExtra(CalendarContract.Events.EVENT_LOCATION, circuito)
+                            putExtra(CalendarContract.Events.DESCRIPTION, "Fim de semana de corrida $nomeCorrida - $subHeaderCategory")
+                            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, timestampReal)
+                        }
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            context,
+                            "Fim de semana do $nomeCorrida adicionado à sua agenda! 📅",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
-                    context.startActivity(intent)
-                } catch (e: Exception) {
-                    Toast.makeText(
-                        context,
-                        "Fim de semana do $nomeCorrida adicionado à sua agenda! 📅",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(16.dp)
-                .height(52.dp)
-        ) {
-            Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = SurfaceDark, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Adicionar Fim de Semana à Agenda", color = SurfaceDark, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = SurfaceDark, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Adicionar Fim de Semana à Agenda", color = SurfaceDark, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
