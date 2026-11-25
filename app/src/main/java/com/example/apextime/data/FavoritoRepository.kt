@@ -12,10 +12,6 @@ import kotlinx.coroutines.flow.map
 private val Context.favoritosDataStore by preferencesDataStore(name = "favoritos")
 private val CHAVE_FAVORITOS = stringPreferencesKey("lista_favoritos_json")
 
-/**
- * Guarda a lista de corridas favoritadas em disco (DataStore), serializada como JSON.
- * Sobrevive a fechar o app — diferente de guardar só em memória no ViewModel.
- */
 class FavoritosRepository(private val context: Context) {
     private val gson = Gson()
     private val tipoLista = object : TypeToken<List<CorridaFavorita>>() {}.type

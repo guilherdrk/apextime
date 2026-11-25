@@ -63,19 +63,14 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalTime
 
-/* ---------- Cores extras (as demais vêm do MainActivity.kt: SurfaceDark, SurfaceContainer, NeonGreen, TextMuted) ---------- */
 val PillBg = Color(0xFF12161D)
 val AccentBlue = Color(0xFF4D8DFF)
 
 private val categorias = listOf("F1", "IndyCar", "WEC", "NASCAR")
 
-/* Um requestCode fixo por categoria, pra cada lembrete poder ser reagendado
-   (o PendingIntent é identificado por esse código, então repetir o mesmo
-   número substitui o lembrete anterior da mesma categoria em vez de duplicar). */
 private const val REQUEST_CODE_F1 = 1001
 private const val REQUEST_CODE_NASCAR = 1002
 
-/** Bom dia (05h–11h59), Boa tarde (12h–17h59) ou Boa noite (18h–04h59), pelo horário do aparelho. */
 private fun saudacaoPorHorario(): String {
     val hora = LocalTime.now().hour
     return when (hora) {
@@ -85,11 +80,6 @@ private fun saudacaoPorHorario(): String {
     }
 }
 
-/**
- * Reconstrói o instante (data/hora) da corrida a partir da contagem regressiva já calculada
- * pelo ViewModel (dias/horas/minutos/segundos restantes a partir de agora). Evita ter que
- * expor o Instant "cru" da corrida lá no ViewModel só pra isso.
- */
 private fun instanteAlvo(dias: Int, horas: Int, minutos: Int, segundos: Int): Instant {
     return Instant.now()
         .plus(Duration.ofDays(dias.toLong()))
@@ -581,9 +571,6 @@ private fun NascarRaceCard(
         Spacer(Modifier.height(12.dp))
         Text(uiState.dataHoraFormatada, color = TextMuted, fontSize = 12.sp)
 
-        // Sem chips de transmissão aqui: diferente da F1 (BAND/F1 TV PRO são fixos e
-        // válidos pra temporada toda), não achei uma fonte confiável de quem transmite
-        // NASCAR no Brasil pra cravar isso sem arriscar informação errada.
         Spacer(Modifier.height(18.dp))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             DefinirLembreteButton(
@@ -758,9 +745,6 @@ private fun IndyCarRaceCard(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(
-                // Essa contagem é um dado estático (ainda não vem de uma API com data real,
-                // diferente da F1 e da NASCAR), então não dá pra agendar um lembrete preciso
-                // em cima dela sem arriscar notificar na hora errada.
                 onClick = {
                     Toast.makeText(
                         context,
@@ -911,8 +895,6 @@ private fun WecRaceCard(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(
-                // Mesmo caso do IndyCar: a contagem aqui é fixa (sem API de data real por trás),
-                // então o lembrete fica indisponível pra não notificar na hora errada.
                 onClick = {
                     Toast.makeText(
                         context,

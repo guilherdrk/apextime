@@ -1,6 +1,7 @@
 package com.example.apextime.data
 
 import android.Manifest
+import android.R
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -14,10 +15,6 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.apextime.MainActivity
 
-/**
- * Dispara quando o alarme agendado por agendarLembrete() (LembreteUtil.kt) chega na hora:
- * monta e mostra a notificação de "sua corrida tá começando".
- */
 class LembreteReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -37,7 +34,7 @@ class LembreteReceiver : BroadcastReceiver() {
         )
 
         val notificacao = NotificationCompat.Builder(context, CANAL_ID)
-            .setSmallIcon(android.R.drawable.ic_popup_reminder)
+            .setSmallIcon(R.drawable.ic_popup_reminder)
             .setContentTitle("ApexTime")
             .setContentText("$nomeCorrida está prestes a começar!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -45,8 +42,6 @@ class LembreteReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
             .build()
 
-        // No Android 13+ a notificação só pode ser mostrada se o usuário aceitou a permissão.
-        // Se ele negou, simplesmente não mostramos nada.
         val temPermissao = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
                 PackageManager.PERMISSION_GRANTED

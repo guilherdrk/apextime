@@ -59,7 +59,6 @@ import com.example.apextime.data.CategorySeries
 import com.example.apextime.data.CorridaFavorita
 import com.example.apextime.data.FavoritosViewModel
 
-// Cores do protótipo
 private val SurfaceDark = Color(0xFF0F141C)
 private val SurfaceContainer = Color(0xFF1B2028)
 private val NeonGreen = Color(0xFF4BE277)
@@ -81,17 +80,14 @@ fun CategoriesScreen(
             .background(SurfaceDark)
             .padding(horizontal = 16.dp)
     ) {
-        // TopBar / Header
         CategoriesHeader(onBackClick = onBackClick)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Grid Info Bar
         GridInfoBar(totalSeries = uiState.totalHomologatedSeries)
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Lista de Categorias
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -109,7 +105,6 @@ fun CategoriesScreen(
 @Composable
 private fun CategoriesHeader(onBackClick: () -> Unit) {
     Column {
-        // App Identity Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -161,7 +156,6 @@ private fun CategoriesHeader(onBackClick: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Navigation SubHeader (Sem ícone inútil no canto direito)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -252,7 +246,6 @@ private fun CategoryCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Row 1: Ícone + Nome/Divisão + Estrela de Favorito
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -329,7 +322,6 @@ private fun CategoryCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Row 2: Status Badge em linha própria sem comprimir título
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
@@ -357,7 +349,6 @@ private fun CategoryCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Banner da Categoria com Imagem estilo iRacing e Tag de Localização
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -389,7 +380,6 @@ private fun CategoryCard(
                     )
                 }
 
-                // Overlay estilo iRacing (gradiente escuro)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -403,7 +393,6 @@ private fun CategoryCard(
                         )
                 )
 
-                // Etiqueta do Autódromo
                 Box(
                     modifier = Modifier
                         .padding(10.dp)
@@ -433,7 +422,6 @@ private fun CategoryCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Chips com Metadados
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -459,7 +447,6 @@ private fun CategoryCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Box da Próxima Etapa
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -141,8 +141,6 @@ class HomeViewModel : ViewModel() {
                 )
                 buscarRecordeDaPista(corrida.circuit.circuitId)
             } catch (e: Exception) {
-                // Olhe o Logcat filtrando por "HomeViewModel" para ver a causa real
-                // (sem internet no emulador, timeout, erro de parsing do JSON, etc.)
                 Log.e("HomeViewModel", "Falha ao buscar próxima corrida", e)
                 _uiState.update {
                     it.copy(
@@ -253,7 +251,6 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    /** Converte "1:10.540" (m:ss.mmm) em segundos totais, para comparar tempos. */
     private fun tempoParaSegundos(tempo: String): Double {
         val partes = tempo.split(":")
         return if (partes.size == 2) {

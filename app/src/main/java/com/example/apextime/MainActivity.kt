@@ -40,7 +40,6 @@ import com.example.apextime.screens.FavoritosScreen
 import com.example.apextime.screens.SessionDetailScreen
 import com.example.apextime.ui.theme.ApexTimeTheme
 
-// Cores base extraídas do protótipo
 val SurfaceDark = Color(0xFF0F141C)
 val SurfaceContainer = Color(0xFF1B2028)
 val NeonGreen = Color(0xFF4BE277)

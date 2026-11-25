@@ -1,36 +1,33 @@
 package com.example.apextime.data
 
-/**
- * Tabela estática de voltas por circuito na Fórmula 1.
- */
 object VoltasPorCircuito {
 
     private val voltas = mapOf(
-        "albert_park" to 58,     // Austrália
-        "shanghai" to 56,        // China
-        "suzuka" to 53,          // Japão
-        "bahrain" to 57,         // Bahrein
-        "jeddah" to 50,          // Arábia Saudita
-        "miami" to 57,           // Miami
-        "imola" to 63,           // Emilia Romagna
-        "monaco" to 78,          // Mônaco
-        "villeneuve" to 70,      // Canadá
-        "catalunya" to 66,       // Espanha
-        "red_bull_ring" to 71,   // Áustria
-        "silverstone" to 52,     // Grã-Bretanha
-        "hungaroring" to 70,     // Hungria
-        "spa" to 44,             // Bélgica
-        "zandvoort" to 72,       // Holanda
-        "monza" to 53,           // Itália
-        "baku" to 51,            // Azerbaijão
-        "marina_bay" to 62,      // Singapura
-        "americas" to 56,        // EUA (COTA)
-        "rodriguez" to 71,       // México
-        "interlagos" to 71,      // Brasil
-        "las_vegas" to 50,       // Las Vegas
-        "vegas" to 50,           // Las Vegas (variação)
-        "losail" to 57,          // Catar
-        "yas_marina" to 58       // Abu Dhabi
+        "albert_park" to 58,
+        "shanghai" to 56,
+        "suzuka" to 53,
+        "bahrain" to 57,
+        "jeddah" to 50,
+        "miami" to 57,
+        "imola" to 63,
+        "monaco" to 78,
+        "villeneuve" to 70,
+        "catalunya" to 66,
+        "red_bull_ring" to 71,
+        "silverstone" to 52,
+        "hungaroring" to 70,
+        "spa" to 44,
+        "zandvoort" to 72,
+        "monza" to 53,
+        "baku" to 51,
+        "marina_bay" to 62,
+        "americas" to 56,
+        "rodriguez" to 71,
+        "interlagos" to 71,
+        "las_vegas" to 50,
+        "vegas" to 50,
+        "losail" to 57,
+        "yas_marina" to 58
     )
 
     fun voltasPara(circuitId: String): Int {
