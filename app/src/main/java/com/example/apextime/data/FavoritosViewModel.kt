@@ -8,15 +8,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/**
- * AndroidViewModel (em vez de ViewModel comum) porque o DataStore precisa de um Context,
- * e o Application é o Context seguro de guardar aqui dentro (não vaza memória de Activity).
- */
 class FavoritosViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = FavoritoRepository(application)
 
-    private val repositorio = FavoritosRepository(application)
-
-    val favoritos: StateFlow<List<CorridaFavorita>> = repositorio.favoritos.stateIn(
+    val favoritos: StateFlow<List<CorridaFavorita>> = repository.favoritos.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
@@ -24,13 +19,25 @@ class FavoritosViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun alternarFavorito(corrida: CorridaFavorita) {
         viewModelScope.launch {
-            repositorio.alternarFavorito(corrida)
+            val jaExiste = favoritos.value.any { it.id == corrida.id }
+            if (jaExiste) {
+                repository.remover(corrida.id)
+            } else {
+                repository.alternarFavorito(corrida)
+            }
+        }
+    }
+
+    fun salvarAnotacao(corrida: CorridaFavorita, novaAnotacao: String) {
+        viewModelScope.launch {
+            val atualizada = corrida.copy(anotacaoPessoal = novaAnotacao)
+            repository.atualizar(atualizada)
         }
     }
 
     fun remover(id: String) {
         viewModelScope.launch {
-            repositorio.remover(id)
+            repository.remover(id)
         }
     }
 }
